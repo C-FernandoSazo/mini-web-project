@@ -91,6 +91,36 @@ def get_data():
         return jsonify(data)
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
+    
+#Get the usernames
+@app.route('/usernames', methods=['GET'])
+def get_usernames():
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('SELECT username FROM users;')
+        result = cur.fetchall()
+        conn.close()
+        cur.close()
+        
+        usernames = [row[0] for row in result]
+        return jsonify(usernames)
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+    
+#Delete the user
+@app.route('/usernames/<username>', methods=['DELETE'])
+def delete_user(username):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('DELETE FROM users WHERE username = %s;', (username,))
+        conn.commit()
+        conn.close()
+        cur.close()
+        return jsonify({'message': 'User deleted successfully'})
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

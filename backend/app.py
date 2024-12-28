@@ -122,6 +122,20 @@ def delete_user(username):
     except Exception as e:
         return jsonify({'message': f'Error: {str(e)}'}), 500
 
+#Update user data
+@app.route('/usernames/<username>', methods=['PUT'])
+def update_data(username):
+    try:
+        data = request.json
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute('UPDATE users SET data = %s, created_at = NOW() WHERE username = %s;', (data['data'], username))
+        conn.commit()
+        conn.close()
+        cur.close()
+        return jsonify({'message': 'User data updated successfully'})
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
 

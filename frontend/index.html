@@ -37,6 +37,23 @@
       <h2>Delete a User</h2>
       <div id="delete-list"></div>
     </section>
+    <!-- Update section -->
+    <section id="update-area">
+      <h2>Update User Data</h2>
+      <!-- Dropdown to select a user -->
+      <label for="user-list">Select User:</label>
+      <select id="user-list">
+        <option value="" disabled selected>Choose a user</option>
+      </select>
+    
+      <!-- Input for new data -->
+      <label for="update-field">New Data:</label>
+      <input type="text" id="update-field" placeholder="Type new data..." required>
+    
+      <!-- Button to submit the update -->
+      <button type="button" id="update-btn">Update</button>
+    </section>
+    
   </main>
   <footer>
     <p>&copy; 2024 JoseLorenzana272</p>
@@ -67,36 +84,30 @@
     });
   </script>
   <script>
-    const viewDataBtn = document.getElementById('view-data');
+    async function fetchData() {
     const output = document.getElementById('output');
+    try {
+      const response = await fetch('http://localhost:5000/data');
+      const data = await response.json();
+      output.innerHTML = '';
 
-    try{
-      viewDataBtn.addEventListener('click', async () => {
-        try {
-          const response = await fetch('http://localhost:5000/data');
-          const data = await response.json();
-          console.log(data);
-
-          // Display data on the frontend
-          if (Array.isArray(data) && data.length > 0) {
-            output.innerHTML = '';
-
-            data.forEach((item) => {
-              const p = document.createElement('p');
-              p.textContent = `${item.username}: ${item.data} -> ${item.created_at}`;
-              output.appendChild(p);
-            });
-          } else {
-            output.textContent = 'No data available';
-          }
-
-        } catch (error) {
-          console.error('Error:', error);
-        }
-      });
+      if (Array.isArray(data) && data.length > 0) {
+        data.forEach((item) => {
+          const p = document.createElement('p');
+          p.textContent = `${item.username}: ${item.data} -> ${item.created_at}`;
+          output.appendChild(p);
+        });
+      } else {
+        output.textContent = 'No data available';
+      }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error fetching data:', error);
     }
+  }
+
+  // Call fetchData when the page loads
+  document.getElementById('view-data').addEventListener('click', fetchData);
+
   </script>
 
     
@@ -109,7 +120,7 @@
     goToDeleteBtn.addEventListener('click', async () => {
       deleteArea.style.display = 'block'; // Show the delete area
       try {
-        const response = await fetch('http://localhost:5000/usernames'); // Assuming this endpoint returns all users
+        const response = await fetch('http://localhost:5000/usernames');
         const users = await response.json();
   
         // Clear previous list
@@ -132,6 +143,7 @@
                 if (deleteResponse.ok) {
                   alert(`User ${user} deleted successfully.`);
                   userDiv.remove(); // Remove the user from the list
+                  fetchData();
                 } else {
                   alert(`Failed to delete user ${user}.`);
                 }
@@ -152,6 +164,67 @@
     });
   </script>
     
+  <script>
+    const updateArea = document.getElementById('update-area');
+    const updateField = document.getElementById('update-field');
+    const updateBtn = document.getElementById('update-btn');
+    const userList = document.getElementById('user-list');
+
+    // Populate the dropdown with usernames
+    async function populateUserList() {
+      try {
+        const response = await fetch('http://localhost:5000/usernames');
+        const users = await response.json();
+
+        userList.innerHTML = '<option value="" disabled selected>Choose a user</option>'; // Reset options
+
+        users.forEach((user) => {
+          const option = document.createElement('option');
+          option.value = user;
+          option.textContent = user;
+          userList.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    }
+    // Auto populate the dropdown when the any changes are made
+    document.getElementById('view-data').addEventListener('click', populateUserList);
+
+    // Handle the update request
+    updateBtn.addEventListener('click', async () => {
+      const username = userList.value; // Get the selected username
+      const newData = updateField.value; // Get the new data
+
+      if (!username || !newData) {
+        alert('Please select a user and enter new data.');
+        return;
+      }
+
+      try {
+        const response = await fetch(`http://localhost:5000/usernames/${username}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: newData }),
+        });
+
+        if (response.ok) {
+          alert(`Data for user ${username} updated successfully.`);
+          updateField.value = ''; // Clear input field
+          fetchData(); // Refresh the data
+        } else {
+          alert(`Failed to update data for user ${username}.`);
+        }
+      } catch (error) {
+        console.error('Error updating data:', error);
+      }
+    });
+
+    // Populate the dropdown when the page loads
+    document.addEventListener('DOMContentLoaded', populateUserList);
+
+    
+  </script>
 
 
 </body>

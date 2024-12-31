@@ -33,6 +33,7 @@
       <h1>‎ </h1>
       <button type="button" id="go-to-delete">Go to Delete</button>
     </section>
+
     <section id="delete-area" style="display:none;">
       <h2>Delete a User</h2>
       <div id="delete-list"></div>
@@ -53,7 +54,34 @@
       <!-- Button to submit the update -->
       <button type="button" id="update-btn">Update</button>
     </section>
-    
+
+    <!-- Search Bar section -->
+    <section id="filter-area">
+      <h2>Search Data</h2>
+      <label for="search-field">Search by Username:</label>
+      <input type="text" id="search-field" placeholder="Type username..." />
+      <button type="button" id="search-btn">Search</button>
+      <h1>‎ </h1>
+      <button type="button" id="reset-btn">Reset</button>
+
+      <div>
+        <!-- Sorting -->
+        <label for="sort-by">Sort By:</label>
+        <select id="sort-by">
+          <option value="username">Username</option>
+          <option value="created_at">Created At</option>
+        </select>
+
+        <label for="order">Order:</label>
+        <select id="order">
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+
+        <button id="apply-sort">Apply Sort</button>
+      </div>
+    </section>    
+
   </main>
   <footer>
     <p>&copy; 2024 JoseLorenzana272</p>
@@ -224,6 +252,90 @@
     document.addEventListener('DOMContentLoaded', populateUserList);
 
     
+  </script>
+
+  <script>
+    // Search for users
+    const searchField = document.getElementById('search-field');
+    const searchBtn = document.getElementById('search-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const output = document.getElementById('output');
+
+    async function fetchAndFilterData(usernameFilter = ''){
+      try {
+        const url = usernameFilter 
+        ? `http://localhost:5000/data?username=${encodeURIComponent(usernameFilter)}`
+        : 'http://localhost:5000/data';
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        output.innerHTML = '';
+
+        if (data.length > 0) {
+          data.forEach((item) => {
+            const p = document.createElement('p');
+            p.textContent = `${item.username}: ${item.data} -> ${item.created_at}`;
+            output.appendChild(p);
+          });
+        } else {
+          output.textContent = 'No data available';
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // Attach event listeners for the search and reset buttons
+    searchBtn.addEventListener('click', () => {
+      const usernameFilter = searchField.value.trim();
+      fetchAndFilterData(usernameFilter); // Fetch data with the filter
+    });
+
+    resetBtn.addEventListener('click', () => {
+      searchField.value = ''; // Clear the search field
+      fetchAndFilterData(); // Fetch all data without any filter
+    });
+  </script>
+
+  <script>
+    //Sorting data
+    const sortBySelect = document.getElementById('sort-by');
+    const orderSelect = document.getElementById('order');
+    const applySortBtn = document.getElementById('apply-sort');
+    const outputArea = document.getElementById('output');
+
+    // Function to fetch data with sorting
+    async function fetchData(sortBy = 'created_at', order = 'asc') {
+      try {
+        const url = `http://localhost:5000/data?sort_by=${encodeURIComponent(sortBy)}&order=${encodeURIComponent(order)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        output.innerHTML = ''; // Clear the output
+
+        if (data.length > 0) {
+          data.forEach(item => {
+            const p = document.createElement('p');
+            p.textContent = `${item.username}: ${item.data} -> ${item.created_at}`;
+            output.appendChild(p);
+          });
+        } else {
+          output.textContent = 'No data matches your search.';
+        }
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    }
+
+    // Event listeners for sorting
+    applySortBtn.addEventListener('click', () => {
+      const sortBy = sortBySelect.value;
+      const order = orderSelect.value;
+      fetchData(sortBy, order);
+    });
+
   </script>
 
 

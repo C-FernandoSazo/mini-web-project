@@ -73,9 +73,26 @@ def get_users():
 @app.route('/data', methods=['GET'])
 def get_data():
     try:
+        username_filter = request.args.get('username', default='', type=str) # get the username filter from the query string
+        sort_by = request.args.get('sort_by', default='created_at', type=str) # get the sort_by parameter from the query string
+        order = request.args.get('order', default='asc', type=str) # get the order parameter from the query string
+
+        valid_sort_columns = ['username', 'data', 'created_at']
+        if sort_by not in valid_sort_columns:
+            sort_by = 'created_at'
+
+        order =  'ASC' if order == 'asc' else 'DESC'
+
         conn = get_connection()
         cur = conn.cursor()
-        cur.execute('SELECT * FROM users;')
+        
+
+        if username_filter:
+            cur.execute(f'''
+                SELECT * FROM users WHERE username ILIKE %s ORDER BY {sort_by} {order};
+            ''', (f'%{username_filter}%',))
+        else:
+            cur.execute(f'''SELECT * FROM users ORDER BY {sort_by} {order};''')
         result = cur.fetchall()
         conn.close()
         cur.close()

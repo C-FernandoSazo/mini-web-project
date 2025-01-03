@@ -35,7 +35,7 @@ This is a little project that demonstrates how to build a simple web application
 
 3. To add, delete, or update user data, use API tools like Postman.
 
-## Database Backup and Restore
+## Database Backup and Restore (Just in case the backup.sql file does not appear on the project folder)
 ### Backup the Database
 Run the following command to create a backup of the database (this will bring up the previously created database data):
 ```bash
